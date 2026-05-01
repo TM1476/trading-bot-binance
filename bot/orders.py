@@ -33,3 +33,23 @@ def place_limit_order(symbol, side, quantity, price):
     except Exception as e:
         logging.error(f"Limit Error: {e}")
         raise
+
+
+def place_market_order(symbol, side, quantity):
+    if client is None:
+        return {
+            "orderId": "DEMO123",
+            "status": "DEMO MODE",
+            "executedQty": quantity
+        }
+
+    try:
+        order = client.create_order(
+            symbol=symbol.upper(),
+            side=side.upper(),
+            type="MARKET",
+            quantity=quantity
+        )
+        return order
+    except Exception as e:
+        raise
