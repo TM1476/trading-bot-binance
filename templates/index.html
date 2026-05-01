@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Trading Bot</title>
+</head>
+<body>
+
+<h2>Trading Bot UI</h2>
+
+<form action="/order" method="post">
+    Symbol: <input name="symbol" value="BTCUSDT"><br><br>
+
+    Side:
+    <select name="side">
+        <option>BUY</option>
+        <option>SELL</option>
+    </select><br><br>
+
+    Type:
+    <select name="type">
+        <option>MARKET</option>
+        <option>LIMIT</option>
+    </select><br><br>
+
+    Quantity: <input name="quantity"><br><br>
+
+    Price: <input name="price"><br><br>
+
+    <button type="submit">Submit</button>
+</form>
+
+</body>
+</html>
