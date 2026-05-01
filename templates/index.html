@@ -1,179 +1,194 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Trading Bot Dashboard</title>
+<meta charset="UTF-8">
+<title>Trading Bot </title>
 
-    <style>
-        body {
-            background: #0f172a;
-            color: #e2e8f0;
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
+<style>
+body {
+    margin: 0;
+    background: #020617;
+    color: white;
+    font-family: Arial;
+    display: flex;
+    height: 100vh;
+}
 
-        .container {
-            background: #1e293b;
-            padding: 30px;
-            border-radius: 12px;
-            width: 400px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-        }
+/* Chart area */
+#chart {
+    width: 65%;
+    height: 100%;
+    background: #020617;
+}
 
-        h2 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
+/* Panel */
+.panel {
+    width: 35%;
+    padding: 20px;
+    border-left: 1px solid #1e293b;
+}
 
-        label {
-            font-size: 14px;
-        }
+input, select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    background: #1e293b;
+    border: none;
+    color: white;
+    border-radius: 6px;
+}
 
-        input, select {
-            width: 100%;
-            padding: 8px;
-            margin-top: 5px;
-            margin-bottom: 15px;
-            border-radius: 6px;
-            border: none;
-            background: #334155;
-            color: white;
-        }
+button {
+    width: 100%;
+    padding: 12px;
+    background: #22c55e;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
 
-        button {
-            width: 100%;
-            padding: 10px;
-            background: #3b82f6;
-            border: none;
-            border-radius: 8px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-        }
+.result {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 6px;
+    display: none;
+}
 
-        button:hover {
-            background: #2563eb;
-        }
-
-        .result {
-            margin-top: 20px;
-            padding: 10px;
-            border-radius: 8px;
-            display: none;
-        }
-
-        .success {
-            background: #065f46;
-        }
-
-        .error {
-            background: #7f1d1d;
-        }
-
-        .loading {
-            text-align: center;
-            margin-top: 10px;
-        }
-    </style>
+.success { background: rgba(34,197,94,0.2); }
+.error { background: rgba(239,68,68,0.2); }
+</style>
 </head>
 
 <body>
 
-<div class="container">
-    <h2>🚀 Trading Bot</h2>
+<canvas id="chart"></canvas>
+
+<div class="panel">
+    <h2>Trading Bot</h2>
 
     <form id="orderForm">
-        <label>Symbol</label>
         <input name="symbol" value="BTCUSDT">
-
-        <label>Side</label>
         <select name="side">
             <option>BUY</option>
             <option>SELL</option>
         </select>
-
-        <label>Order Type</label>
-        <select name="type" id="orderType">
+        <select name="type">
             <option>MARKET</option>
             <option>LIMIT</option>
         </select>
-
-        <label>Quantity</label>
-        <input name="quantity" type="number" step="0.001">
-
-        <label id="priceLabel">Price</label>
-        <input name="price" type="number" step="0.01" id="priceField">
-
+        <input name="quantity" placeholder="Quantity">
+        <input name="price" placeholder="Price">
         <button type="submit">Place Order</button>
     </form>
-
-    <div class="loading" id="loading">⏳ Processing...</div>
 
     <div class="result" id="result"></div>
 </div>
 
 <script>
-    const form = document.getElementById("orderForm");
-    const resultBox = document.getElementById("result");
-    const loading = document.getElementById("loading");
-    const orderType = document.getElementById("orderType");
-    const priceField = document.getElementById("priceField");
-    const priceLabel = document.getElementById("priceLabel");
+const canvas = document.getElementById("chart");
+const ctx = canvas.getContext("2d");
 
-    loading.style.display = "none";
+canvas.width = window.innerWidth * 0.65;
+canvas.height = window.innerHeight;
 
-    orderType.addEventListener("change", () => {
-        if (orderType.value === "MARKET") {
-            priceField.style.display = "none";
-            priceLabel.style.display = "none";
-        } else {
-            priceField.style.display = "block";
-            priceLabel.style.display = "block";
-        }
+let candles = [];
+let lastPrice = 60000;
+
+// Generate initial candles
+for (let i = 0; i < 40; i++) {
+    const open = lastPrice;
+    const close = open + (Math.random() - 0.5) * 800;
+    const high = Math.max(open, close) + Math.random() * 300;
+    const low = Math.min(open, close) - Math.random() * 300;
+
+    candles.push({ open, close, high, low });
+    lastPrice = close;
+}
+
+// Draw chart
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const candleWidth = 10;
+    const gap = 5;
+    const baseY = canvas.height / 2;
+
+    candles.forEach((candle, i) => {
+        const x = i * (candleWidth + gap) + 50;
+
+        const scale = 0.01;
+
+        const openY = baseY - candle.open * scale;
+        const closeY = baseY - candle.close * scale;
+        const highY = baseY - candle.high * scale;
+        const lowY = baseY - candle.low * scale;
+
+        const isGreen = candle.close > candle.open;
+
+        ctx.strokeStyle = isGreen ? "#22c55e" : "#ef4444";
+        ctx.fillStyle = isGreen ? "#22c55e" : "#ef4444";
+
+        // Wick
+        ctx.beginPath();
+        ctx.moveTo(x + candleWidth/2, highY);
+        ctx.lineTo(x + candleWidth/2, lowY);
+        ctx.stroke();
+
+        // Body
+        ctx.fillRect(
+            x,
+            Math.min(openY, closeY),
+            candleWidth,
+            Math.abs(openY - closeY)
+        );
+    });
+}
+
+// Animate new candles
+setInterval(() => {
+    const last = candles[candles.length - 1];
+
+    const open = last.close;
+    const close = open + (Math.random() - 0.5) * 600;
+    const high = Math.max(open, close) + Math.random() * 200;
+    const low = Math.min(open, close) - Math.random() * 200;
+
+    candles.push({ open, close, high, low });
+
+    if (candles.length > 50) candles.shift();
+
+    draw();
+}, 1000);
+
+// Initial draw
+draw();
+
+// Form handling
+const form = document.getElementById("orderForm");
+const resultBox = document.getElementById("result");
+
+form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(form);
+
+    const res = await fetch("/order", {
+        method: "POST",
+        body: formData
     });
 
-    form.addEventListener("submit", async (e) => {
-        e.preventDefault();
+    const data = await res.json();
 
-        loading.style.display = "block";
-        resultBox.style.display = "none";
+    resultBox.style.display = "block";
 
-        const formData = new FormData(form);
-
-        try {
-            const response = await fetch("/order", {
-                method: "POST",
-                body: formData
-            });
-
-            const data = await response.json();
-
-            loading.style.display = "none";
-            resultBox.style.display = "block";
-
-            if (data.status === "success") {
-                resultBox.className = "result success";
-                resultBox.innerHTML = `
-                    ✅ Order Placed Successfully <br><br>
-                    Order ID: ${data.data.orderId} <br>
-                    Status: ${data.data.status} <br>
-                    Quantity: ${data.data.executedQty}
-                `;
-            } else {
-                resultBox.className = "result error";
-                resultBox.innerHTML = `❌ ${data.message}`;
-            }
-
-        } catch (err) {
-            loading.style.display = "none";
-            resultBox.style.display = "block";
-            resultBox.className = "result error";
-            resultBox.innerHTML = "❌ Network Error";
-        }
-    });
+    if (data.status === "success") {
+        resultBox.className = "result success";
+        resultBox.innerHTML = `✅ Order placed ID: ${data.data.orderId}`;
+    } else {
+        resultBox.className = "result error";
+        resultBox.innerHTML = `❌ ${data.message}`;
+    }
+});
 </script>
 
 </body>
